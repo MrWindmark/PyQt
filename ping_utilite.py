@@ -91,6 +91,7 @@ def host_ping(data: list, ping_com):
 
 def host_range_ping(ip1, ip2, ping_com):
     start = end = ipaddress.ip_address('0.0.0.0')
+    table = {}
     if subnet_check(ip1, ip2) == 1:
         try:
             ip1 = ipaddress.ip_address(ip1)
@@ -106,18 +107,28 @@ def host_range_ping(ip1, ip2, ping_com):
         elif ip1 == ip2:
             print("Funny...")
             ping_stat(ip1, ping_com)
-        print("Start adress check")
-        print("*"*15)
-        while end > start:
+        print("*" * 15)
+        print("Start address checking...")
+        print("*" * 15)
+        while end >= start:
             result = ping_stat(start, ping_com)
             if result == 0:
                 print(start, 'is up!')
+                table['Available'] = (str(start),)
             else:
                 print(start, 'is down!')
+                print(str(start))
+                table['Unreachable'] = (str(start),)
             print('-' * 15)
             start += 1
     else:
         print("IP in different subnet or other subnet problem")
+
+    host_range_ping_tab(table)
+
+
+def host_range_ping_tab(data):
+    print(tabulate(data, headers='keys', tablefmt="pipe", stralign="center"))
 
 
 if __name__ == '__main__':
