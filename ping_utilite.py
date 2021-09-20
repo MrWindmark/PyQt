@@ -2,6 +2,7 @@ import ipaddress
 import platform
 import re
 import subprocess
+import chardet
 
 from tabulate import tabulate
 
@@ -9,7 +10,7 @@ from tabulate import tabulate
 def user_menu(*args, **kwargs):
     sys_platform = platform.system()
 
-    if (sys_platform == "Windows"):
+    if sys_platform == "Windows":
         ping_com = ['-n', '4']
     else:
         ping_com = ['-c', '4']
@@ -67,12 +68,17 @@ def subnet_check(ip1: str, ip2: str):
 def ping_stat(address, ping_com):
     process = subprocess.Popen(['ping', str(address), *ping_com], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     out, error = process.communicate()
+    text_encode = chardet.detect(out)
+    data = out.decode(text_encode['encoding']).split('\n')
+    to_drop = data.count('')
+    for i in range(0, to_drop):
+        data.remove('')
     if b'100% packet loss' in out:
         return 1
     elif error != b'':
         return 2
     else:
-        return 0
+        return data
 
 
 def host_ping(data: list, ping_com):
@@ -80,10 +86,10 @@ def host_ping(data: list, ping_com):
     for elem in data:
         try:
             result = ping_stat(elem, ping_com)
-            if result == 0:
-                print(elem, 'is up!')
-            else:
+            if result == 1 or result == 2:
                 print(elem, 'is down!')
+            else:
+                print(elem, 'is up!')
         except Exception as e:
             print(e)
     print('-' * 15)
@@ -91,7 +97,7 @@ def host_ping(data: list, ping_com):
 
 def host_range_ping(ip1, ip2, ping_com):
     start = end = ipaddress.ip_address('0.0.0.0')
-    table = {}
+    table = {'Available': [], 'Unreachable': []}
     if subnet_check(ip1, ip2) == 1:
         try:
             ip1 = ipaddress.ip_address(ip1)
@@ -114,11 +120,10 @@ def host_range_ping(ip1, ip2, ping_com):
             result = ping_stat(start, ping_com)
             if result == 0:
                 print(start, 'is up!')
-                table['Available'] = (str(start),)
+                table['Available'].append(str(start))
             else:
                 print(start, 'is down!')
-                print(str(start))
-                table['Unreachable'] = (str(start),)
+                table['Unreachable'].append(str(start))
             print('-' * 15)
             start += 1
     else:
@@ -127,13 +132,14 @@ def host_range_ping(ip1, ip2, ping_com):
     host_range_ping_tab(table)
 
 
-def host_range_ping_tab(data):
+def host_range_ping_tab(data: dict):
+    print('Total results:')
     print(tabulate(data, headers='keys', tablefmt="pipe", stralign="center"))
 
 
 if __name__ == '__main__':
     print('''
-    Welcome to host_ping utility v1.0
+    Welcome to host_ping utility v1.1
     This script can help net administrator to check current IPv4 network state.
     Created by MrWindmark
     ''')
