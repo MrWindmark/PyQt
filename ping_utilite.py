@@ -30,7 +30,10 @@ def user_menu(*args, **kwargs):
         elif user_command == '1':
             print('Enter destinations with "Space" as divider')
             user_list = input("Enter addresses: ")
-            host_ping(user_list.split(' '), ping_com)
+            url_list = user_list.split(' ')
+            for elem in url_list:
+                elem = elem.replace(',', '.')
+                host_ping(elem, ping_com)
         elif user_command == '2':
             ip_start = dot_checker(input("Enter start of IP range: "))
             ip_end = dot_checker(input("Enter end of IP range: "))
@@ -73,25 +76,22 @@ def ping_stat(address, ping_com):
     to_drop = data.count('')
     for i in range(0, to_drop):
         data.remove('')
-    if b'100% packet loss' in out:
+    if process.returncode == 1:
         return 1
-    elif error != b'':
-        return 2
-    else:
+    elif process.returncode == 0:
         return data
 
 
 def host_ping(data: list, ping_com):
     ping_com[1] = '1'
-    for elem in data:
-        try:
-            result = ping_stat(elem, ping_com)
-            if result == 1 or result == 2:
-                print(elem, 'is down!')
-            else:
-                print(elem, 'is up!')
-        except Exception as e:
-            print(e)
+    try:
+        result = ping_stat(data, ping_com)
+        if result == 1:
+            print(data, 'is down!')
+        else:
+            print(data, 'is up!')
+    except Exception as e:
+        print(e)
     print('-' * 15)
 
 
