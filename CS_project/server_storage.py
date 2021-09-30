@@ -34,6 +34,14 @@ class ServerStorage:
             self.ip = ip
             self.port = port
 
+    # Класс - отображение таблицы списка контактов
+    # Экземпляр этого класса = запись в таблице ContactList
+    class ContactList:
+        def __init__(self, owner_id, contact_id):
+            self.id = None
+            self.owner_id = owner_id
+            self.contact_id = contact_id
+
     def __init__(self):
         # Создаём движок базы данных
         # SERVER_DATABASE - sqlite:///server_base.db3
@@ -70,6 +78,12 @@ class ServerStorage:
                                    Column('port', String)
                                    )
 
+        user_contact_list = Table('Contact_list', self.metadata,
+                                  Column('id', Integer, primary_key=True),
+                                  Column('user_id', ForeignKey('Users.id'), unique=True),
+                                  Column('contact_id', ForeignKey('Users.id'))
+                                  )
+
         # Создаём таблицы
         self.metadata.create_all(self.database_engine)
 
@@ -78,6 +92,7 @@ class ServerStorage:
         mapper(self.AllUsers, users_table)
         mapper(self.ActiveUsers, active_users_table)
         mapper(self.LoginHistory, user_login_history)
+        mapper(self.ContactList, user_contact_list)
 
         # Создаём сессию
         curr_session = sessionmaker(bind=self.database_engine)
