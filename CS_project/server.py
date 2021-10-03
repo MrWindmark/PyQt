@@ -6,6 +6,7 @@ import logging
 import select
 import time
 import logs.config_server_log
+from CS_project.server_storage import ServerStorage
 from errors import IncorrectDataRecivedError
 from common.variables import *
 from common.utils import *
@@ -154,6 +155,9 @@ class Server(metaclass=ServerVerifier):
 def main():
     # Загрузка параметров командной строки, если нет параметров, то задаём значения по умоланию.
     listen_address, listen_port = arg_parser()
+
+    # Инициализируем БД
+    database = ServerStorage()
 
     # Создание экземпляра класса - сервера.
     server = Server(listen_address, listen_port)
