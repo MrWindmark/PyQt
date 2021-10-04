@@ -42,13 +42,14 @@ class ServerStorage:
             self.owner_id = owner_id
             self.contact_id = contact_id
 
-    def __init__(self):
+    def __init__(self, path):
         # Создаём движок базы данных
         # SERVER_DATABASE - sqlite:///server_base.db3
         # echo=False - отключаем ведение лога (вывод sql-запросов)
         # pool_recycle - По умолчанию соединение с БД через 8 часов простоя обрывается.
         # Чтобы это не случилось нужно добавить опцию pool_recycle = 7200 (переуст-ка соед-я через 2 часа)
-        self.database_engine = create_engine(SERVER_DATABASE, echo=False, pool_recycle=7200)
+        self.database_engine = create_engine(f'sqlite:///{path}', echo=False, pool_recycle=7200,
+                                             connect_args={'check_same_thread': False})
 
         # Создаём объект MetaData
         self.metadata = MetaData()
@@ -80,7 +81,7 @@ class ServerStorage:
 
         user_contact_list = Table('Contact_list', self.metadata,
                                   Column('id', Integer, primary_key=True),
-                                  Column('user_id', ForeignKey('Users.id'), unique=True),
+                                  Column('user_id', ForeignKey('Users.id')),
                                   Column('contact_id', ForeignKey('Users.id'))
                                   )
 
@@ -95,8 +96,8 @@ class ServerStorage:
         mapper(self.ContactList, user_contact_list)
 
         # Создаём сессию
-        curr_session = sessionmaker(bind=self.database_engine)
-        self.session = curr_session()
+        Session = sessionmaker(bind=self.database_engine)
+        self.session = Session()
 
         # Если в таблице активных пользователей есть записи, то их необходимо удалить
         # Когда устанавливаем соединение, очищаем таблицу активных пользователей
@@ -108,7 +109,7 @@ class ServerStorage:
         print(username, ip_address, port)
         # Запрос в таблицу пользователей на наличие там пользователя с таким именем
         rez = self.session.query(self.AllUsers).filter_by(name=username)
-        #print(type(rez))
+        # print(type(rez))
         # Если имя пользователя уже присутствует в таблице, обновляем время последнего входа
         if rez.count():
             user = rez.first()
