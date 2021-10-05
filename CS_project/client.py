@@ -8,7 +8,7 @@ import logging
 import threading
 import logs.config_client_log
 from common.variables import *
-from common.utils import *
+import common.utils
 from errors import IncorrectDataRecivedError, ReqFieldMissingError, ServerError
 from decos import log
 from metaclasses import ClientVerifier
