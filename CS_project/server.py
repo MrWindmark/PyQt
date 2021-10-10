@@ -8,16 +8,17 @@ import logging
 import select
 import threading
 import time
+from PyQt5.QtWidgets import QApplication, QMessageBox
+from PyQt5.QtCore import QTimer
+
 import logs.config_server_log
 from CS_project.server_storage import ServerStorage
-from errors import IncorrectDataRecivedError
-from common.variables import *
 from common.utils import *
+from errors import IncorrectDataRecivedError
 from decos import log
 from descriptors import Port
 from metaclasses import ServerVerifier
-from PyQt5.QtWidgets import QApplication, QMessageBox
-from PyQt5.QtCore import QTimer
+from common.variables import *
 from server_gui import MainWindow, gui_create_model, HistoryWindow, create_stat_model, ConfigWindow
 
 # Инициализация логирования сервера.
@@ -31,10 +32,10 @@ conflag_lock = threading.Lock()
 
 # Парсер аргументов коммандной строки.
 @log
-def arg_parser():
+def arg_parser(default_port, default_address):
     parser = argparse.ArgumentParser()
-    parser.add_argument('-p', default=DEFAULT_PORT, type=int, nargs='?')
-    parser.add_argument('-a', default='', nargs='?')
+    parser.add_argument('-p', default=default_port, type=int, nargs='?')
+    parser.add_argument('-a', default=default_address, nargs='?')
     namespace = parser.parse_args(sys.argv[1:])
     listen_address = namespace.a
     listen_port = namespace.p
@@ -47,7 +48,7 @@ class Server(threading.Thread, metaclass=ServerVerifier):
 
     def __init__(self, listen_address, listen_port, database):
         # Параментры подключения
-        self.addr = listen_address
+        self.srv_address = listen_address
         self.port = listen_port
 
         # База данных сервера
@@ -68,11 +69,11 @@ class Server(threading.Thread, metaclass=ServerVerifier):
     def init_socket(self):
         logger.info(
             f'Запущен сервер, порт для подключений: {self.port} ,'
-            f'адрес с которого принимаются подключения: {self.addr}.'
+            f'адрес с которого принимаются подключения: {self.srv_address}.'
             f'Если адрес не указан, принимаются соединения с любых адресов.')
         # Готовим сокет
         transport = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        transport.bind((self.addr, self.port))
+        transport.bind((self.srv_address, self.port))
         transport.settimeout(0.5)
 
         # Начинаем слушать сокет.

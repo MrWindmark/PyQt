@@ -8,7 +8,7 @@ import logging
 import threading
 import logs.config_client_log
 from common.variables import *
-import common.utils
+from common.utils import *
 from errors import IncorrectDataRecivedError, ReqFieldMissingError, ServerError
 from decos import log
 from metaclasses import ClientVerifier
@@ -111,9 +111,13 @@ class ClientSender(threading.Thread, metaclass=ClientVerifier):
                 print('Команда не распознана, попробойте снова. help - вывести поддерживаемые команды.')
 
     # Функция выводящяя справку по использованию.
+    # Функция выводящяя справку по использованию.
     def print_help(self):
         print('Поддерживаемые команды:')
         print('message - отправить сообщение. Кому и текст будет запрошены отдельно.')
+        print('history - история сообщений')
+        print('contacts - список контактов')
+        print('edit - редактирование списка контактов')
         print('help - вывести подсказки по командам')
         print('exit - выход из программы')
 
@@ -160,9 +164,10 @@ class ClientSender(threading.Thread, metaclass=ClientVerifier):
 
 # Класс-приёмник сообщений с сервера. Принимает сообщения, выводит в консоль.
 class ClientReader(threading.Thread, metaclass=ClientVerifier):
-    def __init__(self, account_name, sock):
+    def __init__(self, account_name, sock, database):
         self.account_name = account_name
         self.sock = sock
+        self.database = database
         super().__init__()
 
     # Основной цикл приёмника сообщений, принимает сообщения, выводит в консоль. Завершается при потере соединения.
@@ -191,8 +196,11 @@ class ClientReader(threading.Thread, metaclass=ClientVerifier):
                                 # Захватываем работу с базой данных и сохраняем в неё сообщение
                                 with database_lock:
                                     try:
-                                        self.database.save_message(message[SENDER], self.account_name,
-                                                                   message[MESSAGE_TEXT])
+                                        self.database.save_message(
+                                            message[SENDER],
+                                            self.account_name,
+                                            message[MESSAGE_TEXT]
+                                        )
                                     except Exception as e:
                                         logger.error(f'Ошибка взаимодействия с базой данных. {e}')
 
@@ -233,8 +241,8 @@ def process_response_ans(message):
 @log
 def arg_parser():
     parser = argparse.ArgumentParser()
-    parser.add_argument('addr', default=DEFAULT_IP_ADDRESS, nargs='?')
-    parser.add_argument('port', default=DEFAULT_PORT, type=int, nargs='?')
+    parser.add_argument('addr', default=PROG_DEFAULT_IP, nargs='?')
+    parser.add_argument('port', default=PROG_DEFAULT_PORT, type=int, nargs='?')
     parser.add_argument('-n', '--name', default=None, nargs='?')
     namespace = parser.parse_args(sys.argv[1:])
     server_address = namespace.addr
@@ -244,7 +252,8 @@ def arg_parser():
     # проверим подходящий номер порта
     if not 1023 < server_port < 65536:
         logger.critical(
-            f'Попытка запуска клиента с неподходящим номером порта: {server_port}. Допустимы адреса с 1024 до 65535. Клиент завершается.')
+            f'Попытка запуска клиента с неподходящим номером порта: {server_port}.'
+            f' Допустимы адреса с 1024 до 65535. Клиент завершается.')
         exit(1)
 
     return server_address, server_port, client_name
@@ -304,7 +313,7 @@ def user_list_request(sock, username):
 
 # Функция удаления пользователя из контакт листа
 def remove_contact(sock, username, contact):
-    logger.debug(f'Создание контакта {contact}')
+    logger.debug(f'Удаление контакта {contact}')
     req = {
         ACTION: REMOVE_CONTACT,
         TIME: time.time(),

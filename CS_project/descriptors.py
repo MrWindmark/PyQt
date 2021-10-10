@@ -1,6 +1,15 @@
 import logging
+import sys
 
-logger = logging.getLogger('server')
+
+# Инициализиция логера
+# метод определения модуля, источника запуска.
+if sys.argv[0].find('client') == -1:
+    # если не клиент то сервер!
+    logger = logging.getLogger('server')
+else:
+    # ну, раз не сервер, то клиент
+    logger = logging.getLogger('client')
 
 
 # Дескриптор для описания порта:
@@ -13,7 +22,7 @@ class Port:
             logger.critical(
                 f'Попытка запуска сервера с указанием неподходящего порта {value}. Допустимы адреса с 1024 до 65535.')
             exit(1)
-        elif type(value) != 'int':
+        elif float(int(value)) != value:
             raise ValueError(f'Попытка инициализации порта с десятичным значением, допустимы только целочисленные!')
         # Если порт прошел проверку, добавляем его в список атрибутов экземпляра
         instance.__dict__[self.name] = value
