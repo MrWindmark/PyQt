@@ -1,21 +1,15 @@
 import configparser
 import os
 import socket
-import sys
 import argparse
-import json
-import logging
 import select
 import threading
-import time
 from PyQt5.QtWidgets import QApplication, QMessageBox
 from PyQt5.QtCore import QTimer
 
-import logs.config_server_log
 from CS_project.server_storage import ServerStorage
 from common.utils import *
-from errors import IncorrectDataRecivedError
-from decos import log
+from common.decos import log
 from descriptors import Port
 from metaclasses import ServerVerifier
 from common.variables import *
@@ -82,6 +76,7 @@ class Server(threading.Thread, metaclass=ServerVerifier):
 
     def run(self):
         # Инициализация Сокета
+        global new_connection
         self.init_socket()
 
         # Основной цикл программы сервера
@@ -102,7 +97,10 @@ class Server(threading.Thread, metaclass=ServerVerifier):
             try:
                 if self.clients:
                     recv_data_lst, send_data_lst, err_lst = select.select(
-                        self.clients, self.clients, [], 0)
+                        self.clients,
+                        self.clients,
+                        [], 0
+                    )
             except OSError as e:
                 logger.error(f'Ошибка работы с сокетами: {e}')
 
@@ -119,6 +117,8 @@ class Server(threading.Thread, metaclass=ServerVerifier):
                                 del self.names[name]
                                 break
                         self.clients.remove(client_with_message)
+                        with conflag_lock:
+                            new_connection = True
 
             # Если есть сообщения, обрабатываем каждое.
             for message in self.messages:
@@ -130,6 +130,8 @@ class Server(threading.Thread, metaclass=ServerVerifier):
                     self.clients.remove(self.names[message[DESTINATION]])
                     self.database.user_logout(message[DESTINATION])
                     del self.names[message[DESTINATION]]
+                    with conflag_lock:
+                        new_connection = True
             self.messages.clear()
 
     # Функция адресной отправки сообщения определённому клиенту. Принимает словарь сообщение, список зарегистрированых
@@ -173,7 +175,7 @@ class Server(threading.Thread, metaclass=ServerVerifier):
                 if TIME in message and MESSAGE_TEXT in message:
                     self.messages.append(message)
                     self.database.process_message(message[SENDER], message[DESTINATION])
-                    return
+                    send_message(client, RESPONSE_200)
         # Если клиент выходит
         elif ACTION in message and message[ACTION] == EXIT:
             if ACCOUNT_NAME in message and self.names[message[ACCOUNT_NAME]] == client:
@@ -222,12 +224,25 @@ class Server(threading.Thread, metaclass=ServerVerifier):
             return
 
 
-def main():
-    # Загрузка файла конфигурации сервера
+# Загрузка файла конфигурации
+def config_load():
     config = configparser.ConfigParser()
-
     dir_path = os.path.dirname(os.path.realpath(__file__))
     config.read(f"{dir_path}/{'server.ini'}")
+    # Если конфиг файл загружен правильно, запускаемся, иначе конфиг по умолчанию.
+    if 'SETTINGS' in config:
+        return config
+    else:
+        config.add_section('SETTINGS')
+        config.set('SETTINGS', 'Default_port', str(PROG_DEFAULT_PORT))
+        config.set('SETTINGS', 'Listen_Address', '')
+        config.set('SETTINGS', 'Database_path', '')
+        config.set('SETTINGS', 'Database_file', 'server_database.db3')
+        return config
+
+def main():
+    # Загрузка файла конфигурации сервера
+    config = config_load()
 
     # Загрузка параметров командной строки, если нет параметров, то задаём значения по умоланию.
     listen_address, listen_port = arg_parser(
@@ -235,12 +250,10 @@ def main():
         config['SETTINGS']['Listen_Address']
     )
 
-    # Инициализируем БД
-    database = ServerStorage(
-        os.path.join(
-            config['SETTINGS']['Database_path'],
-            config['SETTINGS']['Database_file']
-        )
+    # Инициализация базы данных
+    database = ServerStorage(os.path.join(
+        config['SETTINGS']['Database_path'],
+        config['SETTINGS']['Database_file'])
     )
 
     # Создание экземпляра класса - сервера.

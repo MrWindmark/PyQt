@@ -1,8 +1,8 @@
 from common.variables import *
-from CS_project.errors import IncorrectDataRecivedError, NonDictInputError
+from common.errors import IncorrectDataRecivedError, NonDictInputError
 import json
 import sys
-from decos import log
+from common.decos import log
 
 sys.path.append('../')
 
