@@ -29,13 +29,13 @@ def gui_create_model(database):
 # GUI - Функция реализующая заполнение таблицы историей сообщений.
 def create_stat_model(database):
     # Список записей из базы
-    hist_list = database.message_history()
+    obj_hist_list = database.message_history()
 
     # Объект модели данных:
     hist_list = QStandardItemModel()
     hist_list.setHorizontalHeaderLabels(
         ['Имя Клиента', 'Последний раз входил', 'Сообщений отправлено', 'Сообщений получено'])
-    for row in hist_list:
+    for row in obj_hist_list:
         user, last_seen, sent, recvd = row
         user = QStandardItem(user)
         user.setEditable(False)

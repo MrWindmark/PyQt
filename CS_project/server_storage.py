@@ -162,7 +162,7 @@ class ServerStorage:
         self.session.commit()
 
     # Функция фиксирует передачу сообщения и делает соответствующие отметки в БД
-    def process_message(self, sender, recipient):
+    def log_process_message(self, sender, recipient):
         # Получаем ID отправителя и получателя
         sender = self.session.query(self.AllUsers).filter_by(name=sender).first().id
         recipient = self.session.query(self.AllUsers).filter_by(name=recipient).first().id

@@ -1,17 +1,14 @@
-from PyQt5.QtWidgets import QMainWindow, qApp, QMessageBox, QApplication, QListView
-from PyQt5.QtGui import QStandardItemModel, QStandardItem, QBrush, QColor
-from PyQt5.QtCore import pyqtSlot, QEvent, Qt
-import sys
-import json
 import logging
+import sys
+
+from PyQt5.QtCore import pyqtSlot, Qt
+from PyQt5.QtGui import QStandardItemModel, QStandardItem, QBrush, QColor
+from PyQt5.QtWidgets import QMainWindow, qApp, QMessageBox
 
 sys.path.append('../')
 from client.main_window_conv import Ui_MainClientWindow
 from client.add_contact import AddContactDialog
 from client.del_contact import DelContactDialog
-from client.database import ClientDatabase
-from client.transport import ClientTransport
-from client.start_dialog import UserNameDialog
 from common.errors import ServerError
 
 logger = logging.getLogger('client')
@@ -74,7 +71,7 @@ class ClientMainWindow(QMainWindow):
     # Заполняем историю сообщений.
     def history_list_update(self):
         # Получаем историю сортированную по дате
-        list = sorted(self.database.get_history(self.current_chat), key=lambda item: item[3])
+        hist_list = sorted(self.database.get_history(self.current_chat), key=lambda item: item[3])
         # Если модель не создана, создадим.
         if not self.history_model:
             self.history_model = QStandardItemModel()
@@ -82,14 +79,14 @@ class ClientMainWindow(QMainWindow):
         # Очистим от старых записей
         self.history_model.clear()
         # Берём не более 20 последних записей.
-        length = len(list)
+        length = len(hist_list)
         start_index = 0
         if length > 20:
             start_index = length - 20
         # Заполнение модели записями, так-же стоит разделить входящие и исходящие выравниванием и разным фоном.
         # Записи в обратном порядке, поэтому выбираем их с конца и не более 20
         for i in range(start_index, length):
-            item = list[i]
+            item = hist_list[i]
             if item[1] == 'in':
                 mess = QStandardItem(f'Входящее от {item[3].replace(microsecond=0)}:\n {item[2]}')
                 mess.setEditable(False)

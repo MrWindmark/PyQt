@@ -174,7 +174,7 @@ class Server(threading.Thread, metaclass=ServerVerifier):
             if DESTINATION in message and SENDER in message:
                 if TIME in message and MESSAGE_TEXT in message:
                     self.messages.append(message)
-                    self.database.process_message(message[SENDER], message[DESTINATION])
+                    self.database.log_process_message(message[SENDER], message[DESTINATION])
                     send_message(client, RESPONSE_200)
         # Если клиент выходит
         elif ACTION in message and message[ACTION] == EXIT:

@@ -55,8 +55,8 @@ class ClientDatabase:
         # Создаём таблицу истории сообщений
         history = Table('message_history', self.metadata,
                         Column('id', Integer, primary_key=True),
-                        Column('from_user', String),
-                        Column('to_user', String),
+                        Column('contact', String),
+                        Column('direction', String),
                         Column('message', Text),
                         Column('date', DateTime)
                         )
