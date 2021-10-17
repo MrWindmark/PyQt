@@ -1,7 +1,15 @@
+astroid==2.8.2
+cffi==1.15.0
 chardet==4.0.0
 click==7.1.2
 greenlet==1.1.1
+isort==5.9.3
+lazy-object-proxy==1.6.0
+mccabe==0.6.1
+platformdirs==2.4.0
+pycparser==2.20
 pycryptodome==3.11.0
+pylint==2.11.1
 PyQt5==5.15.4
 pyqt5-plugins==5.15.4.2.2
 PyQt5-Qt5==5.15.2
@@ -13,3 +21,6 @@ qt5-applications==5.15.2.2.2
 qt5-tools==5.15.2.1.2
 SQLAlchemy==1.4.25
 tabulate==0.8.9
+toml==0.10.2
+typing-extensions==3.10.0.2
+wrapt==1.12.1
