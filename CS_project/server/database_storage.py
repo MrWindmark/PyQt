@@ -153,6 +153,19 @@ class ServerStorage:
         self.session.add(history_row)
         self.session.commit()
 
+    def remove_user(self, name):
+        """Метод удаляющий пользователя из базы."""
+        user = self.session.query(self.AllUsers).filter_by(name=name).first()
+        self.session.query(self.ActiveUsers).filter_by(user=user.id).delete()
+        self.session.query(self.LoginHistory).filter_by(name=user.id).delete()
+        self.session.query(self.UsersContacts).filter_by(user=user.id).delete()
+        self.session.query(
+            self.UsersContacts).filter_by(
+            contact=user.id).delete()
+        self.session.query(self.UsersHistory).filter_by(user=user.id).delete()
+        self.session.query(self.AllUsers).filter_by(name=name).delete()
+        self.session.commit()
+
     def user_login(self, username, ip_address, port, key):
         """
         Метод класса, выполняющийся при входе пользователя, записывает в базу факт входа
@@ -389,6 +402,27 @@ class ServerStorage:
         ).join(self.AllUsers)
         # Возвращаем список кортежей
         return query.all()
+
+    def process_message(self, sender, recipient):
+        '''Метод записывающий в таблицу статистики факт передачи сообщения.'''
+        # Получаем ID отправителя и получателя
+        sender = self.session.query(
+            self.AllUsers).filter_by(
+            name=sender).first().id
+        recipient = self.session.query(
+            self.AllUsers).filter_by(
+            name=recipient).first().id
+        # Запрашиваем строки из истории и увеличиваем счётчики
+        sender_row = self.session.query(
+            self.UsersHistory).filter_by(
+            user=sender).first()
+        sender_row.sent += 1
+        recipient_row = self.session.query(
+            self.UsersHistory).filter_by(
+            user=recipient).first()
+        recipient_row.accepted += 1
+
+        self.session.commit()
 
 
 # Отладка

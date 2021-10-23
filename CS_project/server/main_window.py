@@ -62,12 +62,12 @@ class MainWindow(QMainWindow):
 
         # Надпись о том, что ниже список подключённых клиентов
         self.label = QLabel('Список подключённых клиентов:', self)
-        self.label.setFixedSize(240, 15)
-        self.label.move(10, 25)
+        self.label.setFixedSize(240, 25)
+        self.label.move(10, 35)
 
         # Окно со списком подключённых клиентов.
         self.active_clients_table = QTableView(self)
-        self.active_clients_table.move(10, 45)
+        self.active_clients_table.move(10, 65)
         self.active_clients_table.setFixedSize(780, 400)
 
         # Таймер, обновляющий список клиентов 1 раз в секунду

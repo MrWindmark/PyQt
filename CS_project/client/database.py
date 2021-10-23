@@ -22,7 +22,7 @@ class ClientDatabase:
             self.id = None
             self.username = user
 
-    class MessageHistory:
+    class MessageHistoryForUser:
         """
         Класс - отображение для таблицы статистики переданных сообщений.
         """
@@ -85,7 +85,7 @@ class ClientDatabase:
 
         # Создаём отображения
         mapper(self.KnownUsers, users)
-        mapper(self.MessageHistory, history)
+        mapper(self.MessageHistoryForUser, history)
         mapper(self.Contacts, contacts)
 
         # Создаём сессию
@@ -127,7 +127,7 @@ class ClientDatabase:
     # Функция сохраняющяя сообщения
     def save_message(self, from_user, to_user, message):
         """Метод сохраняющий сообщение в базе данных."""
-        message_row = self.MessageHistory(from_user, to_user, message)
+        message_row = self.MessageHistoryForUser(from_user, to_user, message)
         self.session.add(message_row)
         self.session.commit()
 
@@ -160,11 +160,13 @@ class ClientDatabase:
     # Функция возвращающая историю переписки
     def get_history(self, contact):
         """Метод возвращающий историю сообщений с определённым пользователем."""
-        query = self.session.query(self.MessageHistory).filter_by(contact=contact)
-        return [(history_row.contact,
+        query = self.session.query(self.MessageHistoryForUser).filter_by(contact=contact)
+        data = [(history_row.contact,
                  history_row.direction,
                  history_row.message,
                  history_row.date) for history_row in query.all()]
+        print(data)
+        return data
 
 
 # отладка

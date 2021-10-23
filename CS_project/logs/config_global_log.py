@@ -1,25 +1,26 @@
 import sys
+import logging.handlers
 import os
-sys.path.append('../')
-import logging
 from common.variables import LOGGING_LEVEL
 
+sys.path.append('../')
+
 # создаём формировщик логов (formatter):
-client_formatter = logging.Formatter('%(asctime)s %(levelname)s %(filename)s %(message)s')
+server_formatter = logging.Formatter('%(asctime)s %(levelname)s %(filename)s %(message)s')
 
 # Подготовка имени файла для логирования
 path = os.path.dirname(os.path.abspath(__file__))
-path = os.path.join(path, 'client.log')
+path = os.path.join(path, 'global.log')
 
 # создаём потоки вывода логов
 steam = logging.StreamHandler(sys.stderr)
-steam.setFormatter(client_formatter)
+steam.setFormatter(server_formatter)
 steam.setLevel(logging.INFO)
-log_file = logging.FileHandler(path, encoding='utf8')
-log_file.setFormatter(client_formatter)
+log_file = logging.handlers.TimedRotatingFileHandler(path, encoding='utf8', interval=1, when='D')
+log_file.setFormatter(server_formatter)
 
 # создаём регистратор и настраиваем его
-logger = logging.getLogger('client')
+logger = logging.getLogger('global')
 logger.addHandler(steam)
 logger.addHandler(log_file)
 logger.setLevel(LOGGING_LEVEL)

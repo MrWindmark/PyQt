@@ -126,7 +126,7 @@ class MessageProcessor(threading.Thread):
 
     # Функция адресной отправки сообщения определённому клиенту. Принимает словарь сообщение, список зарегистрированых
     # пользователей и слушающие сокеты. Ничего не возвращает.
-    def process_message(self, message, listen_socks):
+    def process_message(self, message):
         """
         Метод отправки сообщения клиенту.
         """
@@ -164,10 +164,7 @@ class MessageProcessor(threading.Thread):
                 if TIME in message and MESSAGE_TEXT in message:
                     if self.names[message[SENDER]] == client:
                         if message[DESTINATION] in self.names:
-                            self.database.process_message(
-                                message[SENDER],
-                                message[DESTINATION]
-                            )
+                            self.database.process_message(message[SENDER], message[DESTINATION])
                             self.process_message(message)
                             try:
                                 send_message(client, RESPONSE_200)

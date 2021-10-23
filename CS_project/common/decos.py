@@ -10,15 +10,18 @@ sys.path.append('../')
 if sys.argv[0].find('client') == -1:
     # если не клиент то сервер!
     logger = logging.getLogger('server')
-else:
+elif sys.argv[0].find('server') == -1:
     # ну, раз не сервер, то клиент
     logger = logging.getLogger('client')
+else:
+    # на всякий случай
+    logger = logging.getLogger('global')
 
 
 def log(func_to_log):
     """
     Декоратор, выполняющий логирование вызовов функций.
-    Сохраняет события типа debug, содержащие
+    Сохраняет события типа info, содержащие
     информацию о имени вызываемой функиции, параметры с которыми
     вызывается функция, и модуль, вызывающий функцию.
     """

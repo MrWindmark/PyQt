@@ -1,9 +1,11 @@
 import configparser
 import os
 import argparse
-
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtCore import Qt
+
+import logging
+import logs.config_server_log
 
 from common.utils import *
 from common.decos import log

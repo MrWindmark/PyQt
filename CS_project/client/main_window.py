@@ -15,7 +15,7 @@ from client.del_contact import DelContactDialog
 from common.errors import ServerError
 from common.variables import *
 
-logger = logging.getLogger('client')
+logger = logging.getLogger('global')
 
 
 # Класс основного окна
@@ -94,7 +94,10 @@ class ClientMainWindow(QMainWindow):
         историей переписки с текущим собеседником.
         """
         # Получаем историю сортированную по дате
-        hist_list = sorted(self.database.get_history(self.current_chat), key=lambda item: item[3])
+        hist_list = sorted(self.database.get_history(self.current_chat), key=lambda elem: elem[3])
+        logger.debug(f'Начало обработки истории сообщений')
+        logger.info(f'Список сообщений: {hist_list}')
+        print(f'Начало обработки истории сообщений')
         # Если модель не создана, создадим.
         if not self.history_model:
             self.history_model = QStandardItemModel()
@@ -112,12 +115,16 @@ class ClientMainWindow(QMainWindow):
         for i in range(start_index, length):
             item = hist_list[i]
             if item[1] == 'in':
+                logger.debug(f'Входящее от {item[3].replace(microsecond=0)}:\n {item[2]}')
+                print(f'Входящее от {item[3].replace(microsecond=0)}:\n {item[2]}')
                 mess = QStandardItem(f'Входящее от {item[3].replace(microsecond=0)}:\n {item[2]}')
                 mess.setEditable(False)
                 mess.setBackground(QBrush(QColor(255, 213, 213)))
                 mess.setTextAlignment(Qt.AlignLeft)
                 self.history_model.appendRow(mess)
             else:
+                logger.debug(f'Исходящее от {item[3].replace(microsecond=0)}:\n {item[2]}')
+                print(f'Исходящее от {item[3].replace(microsecond=0)}:\n {item[2]}')
                 mess = QStandardItem(f'Исходящее от {item[3].replace(microsecond=0)}:\n {item[2]}')
                 mess.setEditable(False)
                 mess.setTextAlignment(Qt.AlignRight)
@@ -263,7 +270,7 @@ class ClientMainWindow(QMainWindow):
             if err.errno:
                 self.messages.critical(self, 'Ошибка', 'Потеряно соединение с сервером!')
                 self.close()
-            self.messages.critical(self, 'Ошибка', 'Таймаут соединения!')
+            self.messages.critical(self, 'Ошибка', 'Таймаут соединения с получателем!')
         except (ConnectionResetError, ConnectionAbortedError):
             self.messages.critical(self, 'Ошибка', 'Потеряно соединение с сервером!')
             self.close()

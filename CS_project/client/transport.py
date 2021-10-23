@@ -1,4 +1,5 @@
 import logging
+import logs.config_global_log
 import json
 
 import socket
@@ -15,7 +16,7 @@ from common.variables import *
 from common.errors import ServerError
 
 # Логер и объект блокировки для работы с сокетом.
-logger = logging.getLogger('client')
+logger = logging.getLogger('global')
 socket_lock = threading.Lock()
 
 
@@ -160,7 +161,7 @@ class ClientTransport(threading.Thread, QObject):
                 and MESSAGE_TEXT in message and message[DESTINATION] == self.username:
             logger.debug(f'Получено сообщение от пользователя {message[SENDER]}:{message[MESSAGE_TEXT]}')
             self.database.save_message(message[SENDER], 'in', message[MESSAGE_TEXT])
-            self.new_message.emit(message[SENDER])
+            self.new_message.emit(message)
 
     def contacts_list_update(self):
         """Метод обновляющий с сервера список контактов."""
