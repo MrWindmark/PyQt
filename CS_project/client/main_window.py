@@ -44,7 +44,7 @@ class ClientMainWindow(QMainWindow):
         self.ui.menu_exit.triggered.connect(qApp.exit)
 
         # Кнопка отправить сообщение
-        self.ui.btn_send.clicked.connect(self.send_message)
+        self.ui.btn_send.clicked.connect(self.transport_send_message)
 
         # "добавить контакт"
         self.ui.btn_add_contact.clicked.connect(self.add_contact_window)
@@ -116,7 +116,6 @@ class ClientMainWindow(QMainWindow):
             item = hist_list[i]
             if item[1] == 'in':
                 logger.debug(f'Входящее от {item[3].replace(microsecond=0)}:\n {item[2]}')
-                print(f'Входящее от {item[3].replace(microsecond=0)}:\n {item[2]}')
                 mess = QStandardItem(f'Входящее от {item[3].replace(microsecond=0)}:\n {item[2]}')
                 mess.setEditable(False)
                 mess.setBackground(QBrush(QColor(255, 213, 213)))
@@ -124,7 +123,6 @@ class ClientMainWindow(QMainWindow):
                 self.history_model.appendRow(mess)
             else:
                 logger.debug(f'Исходящее от {item[3].replace(microsecond=0)}:\n {item[2]}')
-                print(f'Исходящее от {item[3].replace(microsecond=0)}:\n {item[2]}')
                 mess = QStandardItem(f'Исходящее от {item[3].replace(microsecond=0)}:\n {item[2]}')
                 mess.setEditable(False)
                 mess.setTextAlignment(Qt.AlignRight)
@@ -248,7 +246,7 @@ class ClientMainWindow(QMainWindow):
                 self.current_chat = None
                 self.set_disabled_input()
 
-    def send_message(self):
+    def transport_send_message(self):
         """
         Функция отправки сообщения текущему собеседнику.
         Реализует шифрование сообщения и его отправку.
@@ -262,8 +260,7 @@ class ClientMainWindow(QMainWindow):
         message_text_encrypted = self.encryptor.encrypt(message_text.encode('utf8'))
         message_text_encrypted_base64 = base64.b64encode(message_text_encrypted)
         try:
-            self.transport.send_message(self.current_chat, message_text_encrypted_base64.decode('ascii'))
-            pass
+            self.transport.send_message_to_server(self.current_chat, message_text_encrypted_base64.decode('ascii'))
         except ServerError as err:
             self.messages.critical(self, 'Ошибка', err.text)
         except OSError as err:
@@ -276,7 +273,7 @@ class ClientMainWindow(QMainWindow):
             self.close()
         else:
             self.database.save_message(self.current_chat, 'out', message_text)
-            logger.debug(f'Отправлено сообщение для {self.current_chat}: {message_text}')
+            logger.debug(f'Отправлено в окне сообщение для {self.current_chat}: {message_text}')
             self.history_list_update()
 
     # Слот приёма нового сообщений
@@ -298,6 +295,7 @@ class ClientMainWindow(QMainWindow):
             return
         # Сохраняем сообщение в базу и обновляем историю сообщений или
         # открываем новый чат.
+        logger.debug(f'Обработка в окне. Сообщение: {self.current_chat} "in" {decrypted_message.decode("utf8")}')
         self.database.save_message(self.current_chat, 'in', decrypted_message.decode('utf8'))
 
         sender = message[SENDER]

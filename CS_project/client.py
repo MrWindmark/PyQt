@@ -9,7 +9,7 @@ from Crypto.PublicKey import RSA
 from common.variables import *
 from common.errors import ServerError
 from common.decos import log
-from client.database import ClientDatabase
+from client.client_database import ClientDatabase
 from client.transport import ClientTransport
 from client.main_window import ClientMainWindow
 from client.start_dialog import UserNameDialog
@@ -59,7 +59,8 @@ if __name__ == '__main__':
     # Если имя пользователя не было указано в командной строке то запросим его
     if not client_name or not client_passwd:
         client_app.exec_()
-        # Если пользователь ввёл имя и нажал ОК, то сохраняем ведённое и удаляем объект, инааче выходим
+        # Если пользователь ввёл имя и нажал ОК,
+        # то сохраняем ведённое и удаляем объект, инааче выходим
         if start_dialog.ok_pressed:
             client_name = start_dialog.client_name.text()
             client_passwd = start_dialog.client_passwd.text()

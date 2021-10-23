@@ -1,8 +1,16 @@
 import os
 import datetime
 
+import logging
+import logs.config_server_log
+
 from sqlalchemy import create_engine, Table, Column, Integer, String, Text, MetaData, DateTime
 from sqlalchemy.orm import mapper, sessionmaker
+
+from common.decos import log
+
+
+logger = logging.getLogger('client')
 
 
 # Класс - база данных сервера.
@@ -55,6 +63,7 @@ class ClientDatabase:
             echo=False, pool_recycle=7200,
             connect_args={'check_same_thread': False}
         )
+        logger.debug(f'Работаем с базой: "sqlite:///{os.path.join(path, filename)}')
 
         # Создаём объект MetaData
         self.metadata = MetaData()
@@ -125,9 +134,12 @@ class ClientDatabase:
         self.session.commit()
 
     # Функция сохраняющяя сообщения
-    def save_message(self, from_user, to_user, message):
+    @log
+    def save_message(self, contact, direction, message):
         """Метод сохраняющий сообщение в базе данных."""
-        message_row = self.MessageHistoryForUser(from_user, to_user, message)
+        message_row = self.MessageHistoryForUser(contact, direction, message)
+        logger.debug(f'Клиент база. Сохраняю сообщение с параметрами: {contact} {direction} {message}')
+        logger.debug(f'Строка сообщения: {message_row}')
         self.session.add(message_row)
         self.session.commit()
 
@@ -165,7 +177,7 @@ class ClientDatabase:
                  history_row.direction,
                  history_row.message,
                  history_row.date) for history_row in query.all()]
-        print(data)
+        logger.debug(f'Возвращаю список сообщений пользователя {contact}: {data}')
         return data
 
 

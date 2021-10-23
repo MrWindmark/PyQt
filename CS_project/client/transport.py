@@ -159,7 +159,7 @@ class ClientTransport(threading.Thread, QObject):
         # Если это сообщение от пользователя добавляем в базу, даём сигнал о новом сообщении
         elif ACTION in message and message[ACTION] == MESSAGE and SENDER in message and DESTINATION in message \
                 and MESSAGE_TEXT in message and message[DESTINATION] == self.username:
-            logger.debug(f'Получено сообщение от пользователя {message[SENDER]}:{message[MESSAGE_TEXT]}')
+            logger.debug(f'Транспорт. Сохраняю сообщение от {message[SENDER]}. Тип "in" {message[MESSAGE_TEXT]}')
             self.database.save_message(message[SENDER], 'in', message[MESSAGE_TEXT])
             self.new_message.emit(message)
 
@@ -257,7 +257,7 @@ class ClientTransport(threading.Thread, QObject):
         logger.debug('Транспорт завершает работу.')
         time.sleep(0.5)
 
-    def send_message(self, to, message):
+    def send_message_to_server(self, to, message):
         """Метод отправляющий на сервер сообщения для пользователя."""
         message_dict = {
             ACTION: MESSAGE,
@@ -272,7 +272,7 @@ class ClientTransport(threading.Thread, QObject):
         with socket_lock:
             send_message(self.transport, message_dict)
             self.process_server_ans(get_message(self.transport))
-            logger.info(f'Отправлено сообщение для пользователя {to}')
+            logger.info(f'На сервер отправлено сообщение для пользователя {to}')
 
     def run(self):
         """Метод содержащий основной цикл работы транспортного потока."""

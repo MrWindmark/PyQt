@@ -44,7 +44,8 @@ class Tests(unittest.TestCase):
         test_socket = TestSocket(self.test_dict_send)
         # вызов тестируемой функции, результаты будут сохранены в тестовом сокете
         send_message(test_socket, self.test_dict_send)
-        # проверка корретности кодирования словаря. сравниваем результат довренного кодирования и результат от тестируемой функции
+        # проверка корретности кодирования словаря. сравниваем результат довренного кодирования и результат от
+        # тестируемой функции
         self.assertEqual(test_socket.encoded_message, test_socket.receved_message)
         # дополнительно, проверим генерацию исключения, при не словаре на входе.
         self.assertRaises(NonDictInputError, send_message, test_socket, 1111)

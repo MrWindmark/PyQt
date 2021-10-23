@@ -1,7 +1,11 @@
 import datetime
+import logging
+import logs.config_global_log
 
 from sqlalchemy import create_engine, Table, Column, Integer, String, MetaData, ForeignKey, DateTime, Text
 from sqlalchemy.orm import mapper, sessionmaker
+
+logger = logging.getLogger('global')
 
 
 # Класс - серверная база данных:
@@ -11,11 +15,13 @@ class ServerStorage:
     Использует SQLite базу данных, реализован с помощью
     SQLAlchemy ORM и используется классический подход.
     """
+
     class AllUsers:
         """
         Класс - отображение таблицы всех пользователей.
         Экземпляр этого класса = запись в таблице AllUsers
         """
+
         def __init__(self, username, passwd_hash):
             self.name = username
             self.passwd_hash = passwd_hash
@@ -28,6 +34,7 @@ class ServerStorage:
         Класс - отображение таблицы активных пользователей:
         Экземпляр этого класса = запись в таблице ActiveUsers
         """
+
         def __init__(self, user_id, ip_address, port, login_time):
             self.user = user_id
             self.ip_address = ip_address
@@ -40,6 +47,7 @@ class ServerStorage:
         Класс - отображение таблицы истории входов
         Экземпляр этого класса = запись в таблице LoginHistory
         """
+
         def __init__(self, name, date, ip, port):
             self.id = None
             self.name = name
@@ -51,6 +59,7 @@ class ServerStorage:
         """
         Класс - отображение таблицы контактов пользователей
         """
+
         def __init__(self, user, contact):
             self.id = None
             self.user = user
@@ -60,6 +69,7 @@ class ServerStorage:
         """
         Класс отображение таблицы истории действий
         """
+
         def __init__(self, user):
             self.id = None
             self.user = user
@@ -401,25 +411,18 @@ class ServerStorage:
             self.UsersHistory.accepted
         ).join(self.AllUsers)
         # Возвращаем список кортежей
+
         return query.all()
 
     def process_message(self, sender, recipient):
-        '''Метод записывающий в таблицу статистики факт передачи сообщения.'''
+        """Метод записывающий в таблицу статистики факт передачи сообщения."""
         # Получаем ID отправителя и получателя
-        sender = self.session.query(
-            self.AllUsers).filter_by(
-            name=sender).first().id
-        recipient = self.session.query(
-            self.AllUsers).filter_by(
-            name=recipient).first().id
+        sender = self.session.query(self.AllUsers).filter_by(name=sender).first().id
+        recipient = self.session.query(self.AllUsers).filter_by(name=recipient).first().id
         # Запрашиваем строки из истории и увеличиваем счётчики
-        sender_row = self.session.query(
-            self.UsersHistory).filter_by(
-            user=sender).first()
+        sender_row = self.session.query(self.UsersHistory).filter_by(user=sender).first()
         sender_row.sent += 1
-        recipient_row = self.session.query(
-            self.UsersHistory).filter_by(
-            user=recipient).first()
+        recipient_row = self.session.query(self.UsersHistory).filter_by(user=recipient).first()
         recipient_row.accepted += 1
 
         self.session.commit()
