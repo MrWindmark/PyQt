@@ -290,6 +290,7 @@ class ClientMainWindow(QMainWindow):
         # Декодируем строку, при ошибке выдаём сообщение и завершаем функцию
         try:
             decrypted_message = self.decrypter.decrypt(encrypted_message)
+            logger.info(f'Декодированное сообщение: {decrypted_message}')
         except (ValueError, TypeError):
             self.messages.warning(self, 'Ошибка', 'Не удалось декодировать сообщение.')
             return

@@ -35,10 +35,10 @@ class ClientDatabase:
         Класс - отображение для таблицы статистики переданных сообщений.
         """
 
-        def __init__(self, from_user, to_user, message):
+        def __init__(self, contact, direction, message):
             self.id = None
-            self.from_user = from_user
-            self.to_user = to_user
+            self.contact = contact
+            self.direction = direction
             self.message = message
             self.date = datetime.datetime.now()
 

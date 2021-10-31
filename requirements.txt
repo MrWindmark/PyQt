@@ -13,3 +13,5 @@ qt5-applications==5.15.2.2.2
 qt5-tools==5.15.2.1.2
 SQLAlchemy==1.4.25
 tabulate==0.8.9
+
+setuptools~=57.0.0

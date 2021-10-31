@@ -160,7 +160,6 @@ class ClientTransport(threading.Thread, QObject):
         elif ACTION in message and message[ACTION] == MESSAGE and SENDER in message and DESTINATION in message \
                 and MESSAGE_TEXT in message and message[DESTINATION] == self.username:
             logger.debug(f'Транспорт. Сохраняю сообщение от {message[SENDER]}. Тип "in" {message[MESSAGE_TEXT]}')
-            self.database.save_message(message[SENDER], 'in', message[MESSAGE_TEXT])
             self.new_message.emit(message)
 
     def contacts_list_update(self):
